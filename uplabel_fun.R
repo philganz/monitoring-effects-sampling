@@ -1,10 +1,13 @@
-uplabel_fun <- function(data, units, metrics, groups, yn_var, n_rep, bonferroni = FALSE, n_pop, uplabel_prop, boxcox = FALSE, lambda = seq(-10, 10, 0.01)){
+uplabel_fun <- function(data, units, metrics, groups, yn_var, n_rep, n_pop, uplabel_prop, method, boxcox, lambda = seq(-6, 6, 0.01), p_stop = FALSE, alpha = 0.05){
 
 # Start time ----------------------------------------------------------------------------
 start_time <- Sys.time()
-    
+
+# Verify that method is defined----------------------------------------------------------
+if(!(method %in% c("flip", "swap"))){stop("Method not recognized")}  
+  
 # Save function arguments for output-----------------------------------------------------
-args <- data.table(n_rep, n_pop, uplabel_prop)
+args <- data.table(n_rep, n_pop, uplabel_prop, boxcox, method)
   
 # Initial permutation test---------------------------------------------------------------
   
@@ -15,10 +18,10 @@ pdat <- data[, c(..units, ..groups, ..metrics, ..yn_var)]
 message("Running initial permutation test to confirm evidence of observer effects")
 
 ## Run initial permutation test to confirm evidence of observer effects
-res <- perm_fun(data = pdat, units, metrics, groups, yn_var, n_rep, bonferroni, boxcox, lambda)
+res <- perm_fun(data = pdat, units, metrics, groups, yn_var, n_rep, boxcox, lambda)
 
 ## Identify strata that show any evidence of an observer effect and are therefore candidates for increased sampling
-upstrata <- unique(melt(res$`p-value`, measure.vars = metrics, value.name = "p_val")[p_val < 0.05, ..groups])
+upstrata <- unique(melt(res$`p-value`, measure.vars = metrics, value.name = "p_val")[p_val <= alpha/length(metrics), ..groups])
 
 ## Get starting sample sizes for candidate strata
 upstrata <- res$N_table[upstrata, on = c(groups)]
@@ -56,7 +59,7 @@ for(h in 1:nrow(upstrata)){
 
   ## Start test value at initial permutation p-values
   test <- res$`p-value`[upstrata[h, ..groups], on = c(groups)]
-
+  
   ## Create empty lists to hold permutation results for each increment
   N_table_inc <- list()
   obs_inc     <- list()
@@ -64,7 +67,8 @@ for(h in 1:nrow(upstrata)){
   p_val_inc   <- list()
 
 # Increment-level permutation tests------------------------------------------------------
-while((sum(melt(test[, ..metrics], measure.vars = metrics)$value < 0.05) != 0) & (t < length(unobserved))){
+while(if(p_stop){t < (length(unobserved)) & sum(melt(test[, ..metrics], measure.vars = metrics)$value <= alpha/length(metrics)) != 0
+      } else if(!p_stop){t < (length(unobserved))}){
   
     ## Increase the increment count
     i <- i + 1
@@ -72,6 +76,11 @@ while((sum(melt(test[, ..metrics], measure.vars = metrics)$value < 0.05) != 0) &
     ## Increase the number of additional trips to be observed
     t <- round(uplabel_prop * upstrata[h, n]) * i 
   
+    ## If the additional number of trips to be observed is greater than or equal to the original number of unobserved 
+    ## trips, replace t with the number of unobserved trips - 1 (the permutation test and data transformation require
+    ## at least 1 unobserved trip to be meaningful)
+    t <- min(t, length(unobserved))
+    
     ## Create empty lists to hold permutation results for each population
     N_table_pop <- list()
     obs_pop     <- list()
@@ -84,11 +93,18 @@ while((sum(melt(test[, ..metrics], measure.vars = metrics)$value < 0.05) != 0) &
 # Population-level permutation tests-----------------------------------------------------  
   for(p in 1:n_pop){
     
-      ## Choose t unobserved trip(s) to relabel as observed
-      updat <- copy(sdat)[get(units) %in% sample(unobserved, min(t, length(unobserved))), (yn_var) := "Y"]
+      ## Choose t unobserved trip(s) to observe
+      if(method == "flip"){updat <- copy(sdat)[get(units) %in% sample(unobserved, t), (yn_var) := "Y"]}
+      if(method == "swap"){updat <- rbindlist(list(
+                           # Exclude t unobserved trips
+                           copy(sdat)[!(get(units) %in% sample(unobserved, t))], 
+                           # Duplicate t observed trips
+                           copy(sdat)[get(units) %in% observed # Isolate observed trips
+                                      ][sample(.N, t, replace = TRUE) # Sample with replacement
+                                        ][, (units) := paste(get(units), i, p, .I, sep = ".")]))} # Create unique unit values 
     
       ## Run permutation test on this population of trips  
-      res_pop <- perm_fun(data = updat, units, metrics, groups, yn_var, n_rep, bonferroni, boxcox, lambda)
+      res_pop <- perm_fun(data = updat, units, metrics, groups, yn_var, n_rep, boxcox, lambda)
     
 # Save population-level results----------------------------------------------------------
       N_table_pop[[p]] <- res_pop$N_table[, POP := p]
@@ -104,9 +120,9 @@ while((sum(melt(test[, ..metrics], measure.vars = metrics)$value < 0.05) != 0) &
     exp_inc[[i]]     <- rbindlist(exp_pop)[, TRIPS_ADDED := t]
     p_val_inc[[i]]   <- rbindlist(p_val_pop)[, TRIPS_ADDED := t]
   
-    ### Create object to test whether observer effects are still present (according to p-value)
+    ## Create object to test whether observer effects are still present (according to p-value)
     test <- unique(p_val_inc[[i]][, ..metrics][, lapply(.SD, function(x) median(x, na.rm = TRUE)), .SDcols = metrics])
-  
+    
     }
 
 # Save stratum-level permutation results-------------------------------------------------
@@ -117,7 +133,7 @@ while((sum(melt(test[, ..metrics], measure.vars = metrics)$value < 0.05) != 0) &
 
   }
 
-### Save all results---------------------------------------------------------------------
+# Save all results-----------------------------------------------------------------------
 N_table <- rbindlist(N_table_strat)
 obs     <- rbindlist(obs_strat)
 exp     <- rbindlist(exp_strat)

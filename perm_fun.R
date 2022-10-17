@@ -1,4 +1,4 @@
-perm_fun <- function(data, units, metrics, groups, yn_var, n_rep, bonferroni = FALSE, boxcox = FALSE, lambda = seq(-10, 10, 0.01)){ 
+perm_fun <- function(data, units, metrics, groups, yn_var, n_rep, boxcox, lambda = seq(-6, 6, 0.01)){ 
 
   # Create table of trip counts per group by sampled status----------------------------------
   N_table <- data[, c(..units, ..groups, ..metrics, ..yn_var)][, .(N = uniqueN(get(..units)), n = uniqueN(get(units)[get(yn_var) == "Y"])), by = c(groups)][, rate := n / N][order(mget(groups))]
@@ -18,7 +18,11 @@ perm_fun <- function(data, units, metrics, groups, yn_var, n_rep, bonferroni = F
   data[, vals_shifted := vals_centered - min(vals_centered) + 0.01, keyby = c(groups, "METRICS")]
   
   # Calculate the likelihood of many values of Box-Cox lambda for each group and metric
+  if(length(unique(data[, get(yn_var)])) > 1){
   bc <- data[, .(lambda = lambda, logLik = MASS::boxcox(vals_shifted ~ get(yn_var), lambda = lambda, plotit = FALSE)$y), keyby = c(groups, "METRICS")]
+  } else{
+  bc <- data[, .(lambda = lambda, logLik = MASS::boxcox(vals_shifted ~ 1, lambda = lambda, plotit = FALSE)$y), keyby = c(groups, "METRICS")]  
+  }
   
   # Find the value of lambda that maximizes the likelihood for each group and metric
   bc <- bc[, .(lambda = lambda[logLik == max(logLik)]), keyby = c(groups, "METRICS")]
@@ -82,9 +86,6 @@ perm_fun <- function(data, units, metrics, groups, yn_var, n_rep, bonferroni = F
   
   ## Calculate the p-value as the proportion of permutations that produced a difference more extreme than the observed difference
   p_val <- p_val[, lapply(.SD, function(x) sum(x) / n_rep), .SDcols = metrics, by = c(groups)]
-  
-  ## Apply Bonferroni adjustment (or not) depending on the value of that function argument (adjusted p-values > 1 are given a value of 1)
-  if(bonferroni){p_val <- p_val[, lapply(.SD, function(x) min(c(x * length(metrics), 1))), .SDcols = metrics, keyby = c(groups)]}
   
   # Return results ---------------------------------------------------------------------------
   return(list("N_table" = N_table, "obs" = obs, "exp" = exp, "p-value" = p_val))
