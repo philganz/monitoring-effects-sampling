@@ -78,223 +78,347 @@ groups       <- c("ADP", "EM_GEAR")
 yn_var       <- "OBSERVED_FLAG"
 n_rep        <- 1000
 n_pop        <- 100
-uplabel_prop <- 0.05
+uplabel_prop <- 0.2
 
 # Permutation tests -------------------------------------------------------
 
-# Without data transformation  
-if(file.exists("Observer_Effects/data/perm_results.rdata")){
-  load("Observer_Effects/data/perm_results.rdata")
+# With transformed data 
+if(file.exists("Observer_Effects/data/perm_results_t.rdata")){
+  load("Observer_Effects/data/perm_results_t.rdata")
   
 } else{
   
-perm_results <- perm_fun(data = perm.data, units, metrics, groups, yn_var, n_rep, bonferroni = TRUE)
+  perm_results_t <- perm_fun(data = perm.data, units, metrics, groups, yn_var, n_rep, boxcox = TRUE)
+  
+  # Save results
+  save(perm_results_t, file = "Observer_Effects/data/perm_results_t.rdata")
+}
+
+# With untransformed data
+if(file.exists("Observer_Effects/data/perm_results_u.rdata")){
+  load("Observer_Effects/data/perm_results_u.rdata")
+  
+} else{
+  
+perm_results_u <- perm_fun(data = perm.data, units, metrics, groups, yn_var, n_rep, boxcox = FALSE)
                          
 # Save results
-save(perm_results, file = "Observer_Effects/data/perm_results.rdata")
+save(perm_results_u, file = "Observer_Effects/data/perm_results_u.rdata")
 }
 
-# With data transformation  
-if(file.exists("Observer_Effects/data/perm_results_trans.rdata")){
-  load("Observer_Effects/data/perm_results_trans.rdata")
+# Increased monitoring exercise -----------------------------------------------------
+
+# Sample to 100% with uplabel_prop = 0.2
+
+# With transformed data, uplabeling (flip) method
+if(file.exists("Observer_Effects/data/uplabel_results_tf.rdata")){
+  load("Observer_Effects/data/uplabel_results_tf.rdata")
   
 } else{
   
-perm_results_trans <- perm_fun(data = perm.data, units, metrics, groups, yn_var, n_rep, bonferroni = TRUE, boxcox = TRUE)
+  uplabel_results_tf <- uplabel_fun(perm.data, units, metrics, groups, yn_var, n_rep, n_pop, uplabel_prop, method = "flip", boxcox = TRUE)
   
-# Save results
-save(perm_results_trans, file = "Observer_Effects/data/perm_results_trans.rdata")
+  # Save results
+  save(uplabel_results_tf, file = "Observer_Effects/data/uplabel_results_tf.rdata")
 }
 
-# Uplabeling exercise -----------------------------------------------------
-
-# Without data transformation  
-if(file.exists("Observer_Effects/data/uplabel_results.rdata")){
-  load("Observer_Effects/data/uplabel_results.rdata")
+# With transformed data, resampling (swap) method  
+if(file.exists("Observer_Effects/data/uplabel_results_ts.rdata")){
+  load("Observer_Effects/data/uplabel_results_ts.rdata")
   
 } else{
   
-uplabel_results <- uplabel_fun(perm.data, units, metrics, groups, yn_var, n_rep, bonferroni = TRUE, n_pop, uplabel_prop)
-
-# Save results
-save(uplabel_results, file = "Observer_Effects/data/uplabel_results.rdata")
+  uplabel_results_ts <- uplabel_fun(perm.data, units, metrics, groups, yn_var, n_rep, n_pop, uplabel_prop, method  = "swap", boxcox = TRUE)
+  
+  # Save results
+  save(uplabel_results_ts, file = "Observer_Effects/data/uplabel_results_ts.rdata")
 }
 
-# With data transformation  
-if(file.exists("Observer_Effects/data/uplabel_results_trans.rdata")){
-  load("Observer_Effects/data/uplabel_results_trans.rdata")
+# With untransformed data, uplabeling (flip) method  
+if(file.exists("Observer_Effects/data/uplabel_results_uf.rdata")){
+  load("Observer_Effects/data/uplabel_results_uf.rdata")
   
 } else{
   
-uplabel_results_trans <- uplabel_fun(perm.data, units, metrics, groups, yn_var, n_rep, bonferroni = TRUE, n_pop, uplabel_prop, boxcox = TRUE)
-  
-# Save results
-save(uplabel_results_trans, file = "Observer_Effects/data/uplabel_results_trans.rdata")
+  uplabel_results_uf <- uplabel_fun(perm.data, units, metrics, groups, yn_var, n_rep, n_pop, uplabel_prop, method = "flip", boxcox = FALSE)
+
+  # Save results
+  save(uplabel_results_uf, file = "Observer_Effects/data/uplabel_results_uf.rdata")
 }
+
+# With untransformed data, resampling (swap) method  
+if(file.exists("Observer_Effects/data/uplabel_results_us.rdata")){
+  load("Observer_Effects/data/uplabel_results_us.rdata")
+  
+} else{
+  
+  uplabel_results_us <- uplabel_fun(perm.data, units, metrics, groups, yn_var, n_rep, n_pop, uplabel_prop, method  = "swap", boxcox = FALSE)
+  
+  # Save results
+  save(uplabel_results_us, file = "Observer_Effects/data/uplabel_results_us.rdata")
+}
+
+# Sample to median p-value > 0.05/length(metrics) with uplabel_prop = 0.05
+set.seed(49)
+uplabel_prop <- 0.05
+
+# With transformed data, uplabeling (flip) method
+if(file.exists("Observer_Effects/data/uplabel_results_tf_p_stop.rdata")){
+  load("Observer_Effects/data/uplabel_results_tf_p_stop.rdata")
+  
+} else{
+  
+  uplabel_results_tf_p_stop <- uplabel_fun(perm.data, units, metrics, groups, yn_var, n_rep, n_pop, uplabel_prop, method = "flip", boxcox = TRUE, p_stop = TRUE)
+  
+  # Save results
+  save(uplabel_results_tf_p_stop, file = "Observer_Effects/data/uplabel_results_tf_p_stop.rdata")
+}
+
+# With transformed data, resampling (swap) method  
+if(file.exists("Observer_Effects/data/uplabel_results_ts_p_stop.rdata")){
+  load("Observer_Effects/data/uplabel_results_ts_p_stop.rdata")
+  
+} else{
+  
+  uplabel_results_ts_p_stop <- uplabel_fun(perm.data, units, metrics, groups, yn_var, n_rep, n_pop, uplabel_prop, method  = "swap", boxcox = TRUE, p_stop = TRUE)
+  
+  # Save results
+  save(uplabel_results_ts_p_stop, file = "Observer_Effects/data/uplabel_results_ts_p_stop.rdata")
+}
+
+# With untransformed data, uplabeling (flip) method  
+if(file.exists("Observer_Effects/data/uplabel_results_uf_p_stop.rdata")){
+  load("Observer_Effects/data/uplabel_results_uf_p_stop.rdata")
+  
+} else{
+  
+  uplabel_results_uf_p_stop <- uplabel_fun(perm.data, units, metrics, groups, yn_var, n_rep, n_pop, uplabel_prop, method = "flip", boxcox = FALSE, p_stop = TRUE)
+  
+  # Save results
+  save(uplabel_results_uf_p_stop, file = "Observer_Effects/data/uplabel_results_uf_p_stop.rdata")
+}
+
+# With untransformed data, resampling (swap) method  
+if(file.exists("Observer_Effects/data/uplabel_results_us_p_stop.rdata")){
+  load("Observer_Effects/data/uplabel_results_us_p_stop.rdata")
+  
+} else{
+  
+  uplabel_results_us_p_stop <- uplabel_fun(perm.data, units, metrics, groups, yn_var, n_rep, n_pop, uplabel_prop, method  = "swap", boxcox = FALSE, p_stop = TRUE)
+  
+  # Save results
+  save(uplabel_results_us_p_stop, file = "Observer_Effects/data/uplabel_results_us_p_stop.rdata")
+}
+
 
 # Tables ------------------------------------------------------------------
 
-# Table 1: simulated monitoring rates needed to reduce monitoring effects according to uplabeling exercise
+# Table 1: percent differences at the simulated monitoring rates needed to bring the median p-value (across populations) above 0.05/length(metrics) for all metrics
 
-# Get original sampling rates
-dat <- perm_results$N_table[, .(EM_GEAR, ADP, N, n, r = round(rate * 100, 2))][, .SD, keyby = .(EM_GEAR, ADP)]
+# Get the median p-values that resulted for each combination of year, gear type, metric, increased monitoring method, transformation status, and sampling rate
+dat <- rbind(copy(uplabel_results_uf_p_stop$`p-value`)[, ':=' (BOXCOX = uplabel_results_uf_p_stop$args$boxcox, METHOD = uplabel_results_uf_p_stop$args$method, VARIABLE = "PVAL")], 
+             copy(uplabel_results_tf_p_stop$`p-value`)[, ':=' (BOXCOX = uplabel_results_tf_p_stop$args$boxcox, METHOD = uplabel_results_tf_p_stop$args$method, VARIABLE = "PVAL")],
+             copy(uplabel_results_us_p_stop$`p-value`)[, ':=' (BOXCOX = uplabel_results_us_p_stop$args$boxcox, METHOD = uplabel_results_us_p_stop$args$method, VARIABLE = "PVAL")],
+             copy(uplabel_results_ts_p_stop$`p-value`)[, ':=' (BOXCOX = uplabel_results_ts_p_stop$args$boxcox, METHOD = uplabel_results_ts_p_stop$args$method, VARIABLE = "PVAL")],
+             copy(uplabel_results_uf_p_stop$obs[SCALE == "PCT"])[, ':=' (SCALE = NULL, BOXCOX = uplabel_results_uf_p_stop$args$boxcox, METHOD = uplabel_results_uf_p_stop$args$method, VARIABLE = "PCT_DIFF")], 
+             copy(uplabel_results_tf_p_stop$obs[SCALE == "PCT"])[, ':=' (SCALE = NULL, BOXCOX = uplabel_results_tf_p_stop$args$boxcox, METHOD = uplabel_results_tf_p_stop$args$method, VARIABLE = "PCT_DIFF")],
+             copy(uplabel_results_us_p_stop$obs[SCALE == "PCT"])[, ':=' (SCALE = NULL, BOXCOX = uplabel_results_us_p_stop$args$boxcox, METHOD = uplabel_results_us_p_stop$args$method, VARIABLE = "PCT_DIFF")],
+             copy(uplabel_results_ts_p_stop$obs[SCALE == "PCT"])[, ':=' (SCALE = NULL, BOXCOX = uplabel_results_ts_p_stop$args$boxcox, METHOD = uplabel_results_ts_p_stop$args$method, VARIABLE = "PCT_DIFF")])
+dat <- dat[, lapply(.SD, function(x) median(x)), .SDcols = metrics, keyby = c(groups, "BOXCOX", "METHOD", "TRIPS_ADDED", "VARIABLE")]
+dat <- melt(dat, measure.vars = metrics, variable.name = "METRICS", value.name = "MEDIAN")
 
-# Append uplabeling rates
-dat <- unique(uplabel_results$N_table[, .SD[n == max(n)], keyby = .(EM_GEAR, ADP)][, .(EM_GEAR, ADP, n_u = n, r_u = round(rate * 100, 2))])[dat]
-dat <- unique(uplabel_results_trans$N_table[, .SD[n == max(n)], keyby = .(EM_GEAR, ADP)][, .(EM_GEAR, ADP, n_t = n, r_t = round(rate * 100, 2))])[dat]
+# Add sample size and rates achieved at each given number of trips added  
+dat <- unique(
+  rbind(
+    uplabel_results_uf_p_stop$N_table[, .(ADP, EM_GEAR, BOXCOX = uplabel_results_uf_p_stop$args$boxcox, METHOD = uplabel_results_uf_p_stop$args$method, TRIPS_ADDED, N, n, r = rate)],
+    uplabel_results_tf_p_stop$N_table[, .(ADP, EM_GEAR, BOXCOX = uplabel_results_tf_p_stop$args$boxcox, METHOD = uplabel_results_tf_p_stop$args$method, TRIPS_ADDED, N, n, r = rate)],
+    uplabel_results_us_p_stop$N_table[, .(ADP, EM_GEAR, BOXCOX = uplabel_results_us_p_stop$args$boxcox, METHOD = uplabel_results_us_p_stop$args$method, TRIPS_ADDED, N, n, r = rate)],
+    uplabel_results_ts_p_stop$N_table[, .(ADP, EM_GEAR, BOXCOX = uplabel_results_ts_p_stop$args$boxcox, METHOD = uplabel_results_ts_p_stop$args$method, TRIPS_ADDED, N, n, r = rate)]
+  )
+)[dat, on = .(ADP, EM_GEAR, BOXCOX, METHOD, TRIPS_ADDED)]
 
-# Use the original sample size and rate for groups that didn't require uplabeling
-dat[is.na(n_u), ':=' (n_u = n, r_u = r)]
-dat[is.na(n_t), ':=' (n_t = n, r_t = r)]
+# Replace NAs at 100% sampling
+dat[N == n & VARIABLE == "PVAL", MEDIAN := 1]
+dat[N == n & VARIABLE == "PCT_DIFF", MEDIAN := 0]
 
-# Get the median p-values that resulted for each combination of year, gear type, metric, transformation status, and sampling rate
-all_metrics <- rbind(copy(uplabel_results$`p-value`)[, BOXCOX := "N_BOXCOX"], copy(uplabel_results_trans$`p-value`)[, BOXCOX := "Y_BOXCOX"])
-all_metrics <- all_metrics[, lapply(.SD, function(x) median(x)), .SDcols = metrics, keyby = c(groups, "BOXCOX", "TRIPS_ADDED")]
-all_metrics <- melt(all_metrics, measure.vars = metrics, variable.name = "METRICS", value.name = "MEDIAN_P_VALUE")
+# Cast to wide format in order to get p-value and percent difference on the same row
+dat <- dcast(dat, ADP + EM_GEAR + BOXCOX + METHOD + TRIPS_ADDED + N + n + r + METRICS ~ paste0("MEDIAN_", VARIABLE), value.var = "MEDIAN")
 
-# Isolate the highest two sampling rates for each combination of year, gear type, metric, and transformation status
-lagging_metrics <- all_metrics[order(-TRIPS_ADDED), .SD[1:2], keyby = c(groups, "BOXCOX", "METRICS")]
-lagging_metrics <- lagging_metrics[!is.na(MEDIAN_P_VALUE)]
+# Add column for whether p <= 0.05/length(metrics)
+dat[, SIG := MEDIAN_PVAL <= 0.05/length(metrics)]
 
-# Remove combinations that achieved a p-value above 0.05 before the highest sampling rate
-passing_metrics <- unique(lagging_metrics[, .SD[MEDIAN_P_VALUE >= 0.05 & TRIPS_ADDED < max(TRIPS_ADDED)], keyby = c(groups, "BOXCOX")][, .(ADP, EM_GEAR, BOXCOX, METRICS)])
-lagging_metrics <- lagging_metrics[!passing_metrics, on = .(ADP, EM_GEAR, BOXCOX, METRICS)][order(ADP, EM_GEAR, BOXCOX, METRICS)]
+# Isolate the lowest sampling rate at which all metrics have p > 0.05/length(metrics)
+pass <- unique(dat[, .SD[sum(SIG) == 0], by = .(ADP, EM_GEAR, BOXCOX, METHOD, TRIPS_ADDED)
+][, .SD[TRIPS_ADDED == min(TRIPS_ADDED)], by = .(ADP, EM_GEAR, BOXCOX, METHOD)]
+[, .(ADP, EM_GEAR, BOXCOX, METHOD, TRIPS_ADDED)])
+dat <- dat[pass, on = .(ADP, EM_GEAR, BOXCOX, METHOD, TRIPS_ADDED)]
 
-# From the remaining metrics, isolate those that had the lowest p-value at the highest sampling rate  
-lagging_metrics <- lagging_metrics[, .SD[TRIPS_ADDED == max(TRIPS_ADDED)], keyby = c(groups, "BOXCOX")]
-lagging_metrics <- lagging_metrics[, .SD[MEDIAN_P_VALUE == min(MEDIAN_P_VALUE)], keyby = c(groups, "BOXCOX")]
+# Isolate the metric with the lowest p-value of those that passed
+dat <- dat[, .SD[MEDIAN_PVAL == min(MEDIAN_PVAL)], by = .(ADP, EM_GEAR, BOXCOX, METHOD)][, ':='(MEDIAN_PVAL = NULL, SIG = NULL)]
 
-# Reformat the lagging metrics in preparation for joining  
-lagging_metrics <- unique(lagging_metrics[, .(ADP, EM_GEAR, BOXCOX, METRICS = recode(METRICS, "N_AREAS" = "NMFS areas", "DAYS" = "Days fished", "LENGTH_OVERALL" = "Vessel length (ft)", "N_SPECIES" = "Species landed", "PMAX" = "pMax species", "LANDED_CATCH" = "Landed catch (t)"))])
-lagging_metrics <- dcast(lagging_metrics, ... ~ BOXCOX, value.var = "METRICS")
+# Save these "lagging" metrics for later use with figures
+lagging_metrics <- unique(dat[, .(ADP, EM_GEAR, BOXCOX, METHOD, METRICS)])
 
-# Attach those lagging metrics to the table  
-dat <- lagging_metrics[dat, on = .(ADP, EM_GEAR)]
+# Add original sampling rates and percent differences
+dat <- rbind(
+  merge(perm_results_u$N_table[, .(EM_GEAR, ADP, N_o = N, n_o = n, r_o = round(rate * 100, 2))], on = .(ADP, EM_GEAR, METRICS),
+        melt(perm_results_u$obs[SCALE == "PCT"], measure.vars = metrics, variable.name = "METRICS", value.name = "d_o")
+  )[, ":=" (SCALE = NULL, BOXCOX = FALSE)],
+  merge(perm_results_t$N_table[, .(EM_GEAR, ADP, N_o = N, n_o = n, r_o = round(rate * 100, 2))], on = .(ADP, EM_GEAR, METRICS),
+        melt(perm_results_u$obs[SCALE == "PCT"], measure.vars = metrics, variable.name = "METRICS", value.name = "d_o")
+  )[, ":=" (SCALE = NULL, BOXCOX = TRUE)]
+)[dat, on = .(ADP, EM_GEAR, BOXCOX, METRICS)]
 
-# Consolidate rows where the lagging metric was the same  
-dat <- merge(dat[, .(EM_GEAR, ADP, N, n, r, N_BOXCOX, n_u, r_u)], dat[, .(EM_GEAR, ADP, N, n, r, Y_BOXCOX, n_t, r_t)], by.x = c("EM_GEAR", "ADP", "N", "n", "r", "N_BOXCOX"), by.y = c("EM_GEAR", "ADP", "N", "n", "r", "Y_BOXCOX"), all = TRUE)
+# Express rates as percentages
+dat[, r := r * 100]
 
-# Reorder and rename columns
-dat <- dat[, .(Gear = EM_GEAR, Year = ADP, N, n, r, m = N_BOXCOX, n_u, n_t, r_u, r_t)]
+# Round values
+dat[, c("d_o", "r", "MEDIAN_PCT_DIFF") := lapply(.(d_o, r, MEDIAN_PCT_DIFF), round, 2)]
+
+# Recode metrics
+dat[, METRICS := recode(METRICS, "N_AREAS" = "Areas", "DAYS" = "Days", "LENGTH_OVERALL" = "Length (ft)", "N_SPECIES" = "Species", "PMAX" = "pMax", "LANDED_CATCH" = "Landings (t)")]
+
+# Start creating wide table
+dat[, TREATMENT := paste(BOXCOX, METHOD, sep = "_")]
+dat[, TREATMENT := recode(TREATMENT, "FALSE_flip" = "uu", "FALSE_swap" = "ur", "TRUE_flip" = "tu", "TRUE_swap" = "tr")]
+dat <- dcast(dat, EM_GEAR + ADP + d_o + METRICS ~ paste0("n_", TREATMENT), value.var = "n")[
+  dcast(dat, EM_GEAR + ADP + d_o + METRICS ~ paste0("r_", TREATMENT), value.var = "r")][
+    dcast(dat, EM_GEAR + ADP + d_o + METRICS ~ paste0("d_", TREATMENT), value.var = "MEDIAN_PCT_DIFF")]
+
+# Add original sample rates
+dat <- dat[perm_results_u$N_table[, .(EM_GEAR, ADP, N, n, r = round(rate * 100, 2))], on = .(EM_GEAR, ADP)][order(EM_GEAR, ADP)]
+
+# Where no increased sampling was needed, replace sample sizes and rates with originals
+dat[is.na(METRICS), ':=' (n_uu = n, r_uu = r)]
+dat[is.na(METRICS), ':=' (n_ur = n, r_ur = r)]
+dat[is.na(METRICS), ':=' (n_tu = n, r_tu = r)]
+dat[is.na(METRICS), ':=' (n_tr = n, r_tr = r)]
+
+dat[, c("n_uu", "n_ur", "n_tu", "n_tr") := lapply(.(n_uu, n_ur, n_tu, n_tr), function(x) replace(x, is.na(x), 0))]
 
 # Add totals
-totals <- dat[, lapply(.SD, function(x) sum(x, na.rm = TRUE)), .SDcols = c("N", "n", "n_u", "n_t")]
-totals <- totals[, ':=' (Gear = "Total", Year = "", r = round(n / N * 100, 2), m = "", r_u = round(n_u / N * 100, 2), r_t = round(n_t / N * 100, 2))]
-dat    <- rbind(dat, totals)
+totals <- dat[, lapply(.SD, function(x) sum(x, na.rm = TRUE)), .SDcols = c("n_uu", "n_ur", "n_tu", "n_tr")]
+totals[, ':=' (EM_GEAR = "Total", ADP = "", N = sum(unique(dat[, .(EM_GEAR, ADP, N)])$N), n = sum(unique(dat[, .(EM_GEAR, ADP, n)])$n))]
+totals[, ':=' (r = round(n / N * 100, 2), d_o = "", METRICS = "",
+               d_uu = "", r_uu = round(n_uu / N * 100, 2), 
+               d_ur = "", r_ur = round(n_ur / N * 100, 2), 
+               d_tu = "", r_tu = round(n_tu / N * 100, 2), 
+               d_tr = "", r_tr = round(n_tr / N * 100, 2))]
 
-# Replace NAs with a dash
-dat <- dat[, lapply(.SD, function(x) ifelse(is.na(x), "-", as.character(x)))]
+dat <- rbind(dat, totals)
+
+# Reorder columns and rows
+dat <- dat[, .(Gear = EM_GEAR, Year = ADP, N, r, d = d_o, m = METRICS, r_uu, d_uu, r_ur, d_ur, r_tu, d_tu, r_tr, d_tr)][order(Gear, Year)]
+
+# Format columns so that digits to the right of the decimal are retained
+dat <- dat[, lapply(.SD, function(x) format(x, nsmall = 2, big.mark = ","))]
+
+# Replace NAs with dashes
+dat <- dat[, lapply(.SD, function(x) replace(x, grepl("NA", x), "-"))]
+
+# Create Table 1 header
+t1_header <- data.frame(col_keys  = c("Gear", "Year", "N", "r", "m", "r_uu", "d_uu", "r_ur", "d_ur", "r_tu", "d_tu", "r_tr", "d_tr"),
+                        line1 = c(rep("", 2), rep("Original", 2), rep("Increased monitoring results", 9)),
+                        line2 = c(rep("", 5), rep("Using untransformed data", 4), rep("Using transformed data", 4)),
+                        line3  = c("Gear", "Year", "N", "r", "m", "ru", "du", "rr", "dr", "ru", "du", "rr", "dr"),
+                        stringsAsFactors = FALSE)
 
 # Create Table 1
-t1 <- flextable(dat) %>% 
+t1 <- dat %>% 
+      flextable(col_keys = t1_header$col_keys) %>%
+      set_header_df(mapping = t1_header, key = "col_keys") %>% 
+      theme_booktabs() %>% 
+      merge_h(part = "header") %>%
       merge_v(j = "Gear") %>% 
-      compose(j = "n_u", part = "header", value = as_paragraph("n", as_chunk("u", props = fp_text(vertical.align = "subscript")))) %>% 
-      compose(j = "r_u", part = "header", value = as_paragraph("r", as_chunk("u", props = fp_text(vertical.align = "subscript")))) %>%  
-      compose(j = "n_t", part = "header", value = as_paragraph("n", as_chunk("t", props = fp_text(vertical.align = "subscript")))) %>% 
-      compose(j = "r_t", part = "header", value = as_paragraph("r", as_chunk("t", props = fp_text(vertical.align = "subscript")))) %>%  
-      border_remove() %>% 
-      hline_top(border = fp_border(color = "black", style = "solid", width = 1)) %>% 
-      hline(i = c(2, 5, 8, 11), border = fp_border(color = "black", style = "solid", width = 1)) %>% 
-      hline(i = 12, j = 1, border = fp_border(color = "black", style = "solid", width = 1)) %>% 
-      hline(i = 14, border = fp_border(color = "black", style = "solid", width = 1))
+      hline(i = c(2, 5, 8, 11, 15), border = fp_border(color = "black", style = "solid", width = 1))
 
 # Save Table 1
 # save_as_docx(t1, path = "Observer_Effects/tables/t1.docx")
 
-# Table 2: initial lambda estimates on raw data, before any uplabeling
-
-# Put data in long format
-dat <- melt.data.table(perm.data, measure.vars = metrics, variable.name = "METRICS", value.name = "vals")
-
-# Center values about the mean within group and yes / no variable
-dat[, vals_centered := vals - mean(vals), keyby = c(groups, "METRICS", yn_var)]
-
-# Shift values to be positive within each group
-dat[, vals_shifted := vals_centered - min(vals_centered) + 0.01, keyby = c(groups, "METRICS")]
-
-# Calculate the likelihood of many values of Box-Cox lambda for each group and metric
-bc <- dat[, .(lambda = seq(-10, 10, 0.01), logLik = MASS::boxcox(vals_shifted ~ get(yn_var), lambda = seq(-10, 10, 0.01), plotit = FALSE)$y), keyby = c(groups, "METRICS")]
-
-# Find the value of lambda that maximizes the likelihood for each group and metric
-bc <- bc[, .(lambda = lambda[logLik == max(logLik)]), keyby = c(groups, "METRICS")]
-
-# Put estimates into wide format
-bc <- dcast(bc, ... ~ METRICS, value.var = "lambda")
-
-# Reorder rows
-bc <- bc[order(EM_GEAR, ADP)]
-
-# Rename columns
-bc <- bc[, .(Gear = EM_GEAR, Year = as.character(ADP), `NMFS areas` = N_AREAS, `Days fished` = DAYS, `Vessel length (ft)` = LENGTH_OVERALL, `Species landed` = N_SPECIES, pMax = PMAX, `Landed catch (t)` = LANDED_CATCH)]
-
-# Create Table 2
-t2 <- flextable(bc) %>% 
-      merge_v(j = "Gear") %>%
-      border_remove() %>% 
-      hline_top(border = fp_border(color = "black", style = "solid", width = 1)) %>% 
-      hline(i = c(2, 5, 8, 11), border = fp_border(color = "black", style = "solid", width = 1)) %>% 
-      hline(i = 12, j = 1, border = fp_border(color = "black", style = "solid", width = 1)) %>% 
-      hline(i = 14, border = fp_border(color = "black", style = "solid", width = 1))
-
-# Save Table 2
-# save_as_docx(t2, path = "Observer_Effects/tables/t2.docx")
-
 # Figures -----------------------------------------------------------------
 
-## Figure 2: median p-values against observation rate for each metric, gear type, and transformation status
-dat <- uplabel_results$N_table[uplabel_results$`p-value`, on = .(ADP, EM_GEAR, POP, TRIPS_ADDED)][, POP := NULL][, BOXCOX := "No"]
-dat <- rbind(dat, uplabel_results_trans$N_table[uplabel_results_trans$`p-value`, on = .(ADP, EM_GEAR, POP, TRIPS_ADDED)][, POP := NULL][, BOXCOX := "Yes"])
-dat <- rbind(dat, perm_results$N_table[perm_results$`p-value`, on = .(ADP, EM_GEAR)][, ":=" (TRIPS_ADDED = 0, BOXCOX = "No")])
-dat <- rbind(dat, perm_results_trans$N_table[perm_results_trans$`p-value`, on = .(ADP, EM_GEAR)][, ":=" (TRIPS_ADDED = 0, BOXCOX = "Yes")])
-dat <- dat[, lapply(.SD, function(x) median(x, na.rm = TRUE)), .SDcols = metrics, keyby = .(ADP, EM_GEAR, N, n, rate, TRIPS_ADDED, BOXCOX)]
-dat <- unique(dat[, .(ADP, EM_GEAR, N, n, rate, TRIPS_ADDED, N_AREAS, DAYS, LENGTH_OVERALL, N_SPECIES, PMAX, LANDED_CATCH, BOXCOX)])
-dat <- melt(dat, measure.vars = metrics, variable.name = "METRIC")
+## Figure 2: median p-values against observation rate for lagging metrics
+dat <- uplabel_results_uf$N_table[uplabel_results_uf$`p-value`, on = .(ADP, EM_GEAR, POP, TRIPS_ADDED)][, POP := NULL][, ':=' (BOXCOX = uplabel_results_uf$args$boxcox, METHOD = uplabel_results_uf$args$method)]
+dat <- rbind(dat, uplabel_results_tf$N_table[uplabel_results_tf$`p-value`, on = .(ADP, EM_GEAR, POP, TRIPS_ADDED)][, POP := NULL][, ':=' (BOXCOX = uplabel_results_tf$args$boxcox, METHOD = uplabel_results_tf$args$method)])
+dat <- rbind(dat, uplabel_results_us$N_table[uplabel_results_us$`p-value`, on = .(ADP, EM_GEAR, POP, TRIPS_ADDED)][, POP := NULL][, ':=' (BOXCOX = uplabel_results_us$args$boxcox, METHOD = uplabel_results_us$args$method)])
+dat <- rbind(dat, uplabel_results_ts$N_table[uplabel_results_ts$`p-value`, on = .(ADP, EM_GEAR, POP, TRIPS_ADDED)][, POP := NULL][, ':=' (BOXCOX = uplabel_results_ts$args$boxcox, METHOD = uplabel_results_ts$args$method)])
+dat <- rbind(dat, perm_results_u$N_table[perm_results_u$`p-value`, on = .(ADP, EM_GEAR)][, ":=" (TRIPS_ADDED = 0, BOXCOX = FALSE, METHOD = "flip")])
+dat <- rbind(dat, perm_results_u$N_table[perm_results_u$`p-value`, on = .(ADP, EM_GEAR)][, ":=" (TRIPS_ADDED = 0, BOXCOX = FALSE, METHOD = "swap")])
+dat <- rbind(dat, perm_results_t$N_table[perm_results_t$`p-value`, on = .(ADP, EM_GEAR)][, ":=" (TRIPS_ADDED = 0, BOXCOX = TRUE, METHOD = "flip")])
+dat <- rbind(dat, perm_results_t$N_table[perm_results_t$`p-value`, on = .(ADP, EM_GEAR)][, ":=" (TRIPS_ADDED = 0, BOXCOX = TRUE, METHOD = "swap")])
+dat <- melt(dat, measure.vars = metrics, variable.name = "METRICS")
+dat <- dat[lagging_metrics, on = .(ADP, EM_GEAR, BOXCOX, METHOD, METRICS)]
 dat[, EM_GEAR := factor(EM_GEAR, levels = c("EM HAL", "HAL", "POT", "NPT", "PTR"))]
+dat[, BOXCOX := ifelse(BOXCOX, "Yes", "No")]
 dat[, BOXCOX := factor(BOXCOX, levels = c("Yes", "No"))]
-dat[, METRIC := recode(METRIC, "N_AREAS" = "NMFS\nareas", "DAYS" = "Days\nfished", "LENGTH_OVERALL" = "Vessel\nlength (ft)", "N_SPECIES" = "Species\nlanded", "PMAX" = "pMax\nspecies", "LANDED_CATCH" = "Landed\ncatch (t)")]
-dat <- dat[ADP == 2019]
+dat[, METHOD := recode(METHOD, "flip" = "Uplabel", "swap" = "Resample")]
+dat[, METHOD := factor(METHOD, levels = c("Uplabel", "Resample"))]
+dat[, METRICS := as.character(recode(METRICS, "N_AREAS" = "Areas", "DAYS" = "Days", "LENGTH_OVERALL" = "Length (ft)", "N_SPECIES" = "Species", "PMAX" = "pMax", "LANDED_CATCH" = "Landings (t)"))]
+
+# Replace NAs at 100% sampling with 1, since 100% of permutations are at least as extreme as the observed difference (the two are equal)
+dat[N == n, value := 1]
+
+# Calculate median and confidence interval  
+dat <- dat[, .(lci = quantile(value, 0.25), median = median(value), uci = quantile(value, 0.75)), keyby = .(ADP, EM_GEAR, N, n, rate, TRIPS_ADDED, BOXCOX, METHOD, METRICS)]
 
 # Create Figure 2
-f2 <- ggplot(dat, aes(x = rate * 100, y = value, shape = BOXCOX, color = BOXCOX)) +
-      geom_line() +
-      geom_point(size = 2) + 
-      geom_hline(yintercept = 0.05, linetype = 2, color = "red") +
-      facet_grid(METRIC ~ EM_GEAR) +
-      labs(x = "Simulated monitoring rate (%)", y = "p-value", shape = "Transformed", color = "Transformed") +
+f2 <- ggplot(dat) +
+      geom_line(aes(x = rate * 100, y = median, shape = METHOD, color = BOXCOX)) +
+      geom_point(aes(x = rate * 100, y = median, shape = METHOD, color = BOXCOX), size = 2) + 
+      geom_ribbon(aes(x = rate * 100, ymin = lci, ymax = uci, shape = METHOD, fill = BOXCOX), alpha = 0.2) +
+      geom_hline(yintercept = 0.05/length(metrics), linetype = 2, color = "red") +
+      facet_wrap(c("EM_GEAR", "ADP", "METRICS"), scales = "free") +
+      labs(x = "Simulated monitoring rate (%)", y = "p-value", fill = "Transformed", shape = "Method") +
       theme_bw() +
+      scale_fill_manual(values = c("red", "black")) +
       scale_color_manual(values = c("red", "black")) +
       theme(text = element_text(size = 16),
-            legend.position = "bottom")
+            legend.position = "bottom") +
+      guides(color = "none")
 
 # Save Figure 2
 # png("Observer_Effects/figures/f2.png", width = 11, height = 8.5, units = 'in', res = 300)
 # f2
 # dev.off()
 
-## Figure 3: median difference (%) against observation rate for each metric, gear type, and transformation status  
-dat <- uplabel_results$N_table[uplabel_results$obs[SCALE == "PCT"], on = .(ADP, EM_GEAR, POP, TRIPS_ADDED)][, POP := NULL][, BOXCOX := "No"]
-dat <- rbind(dat, uplabel_results_trans$N_table[uplabel_results_trans$obs[SCALE == "PCT"], on = .(ADP, EM_GEAR, POP, TRIPS_ADDED)][, POP := NULL][, BOXCOX := "Yes"])
-dat <- rbind(dat, perm_results$N_table[perm_results$obs[SCALE == "PCT"], on = .(ADP, EM_GEAR)][, ":=" (TRIPS_ADDED = 0, BOXCOX = "No")])
-dat <- rbind(dat, perm_results_trans$N_table[perm_results_trans$obs[SCALE == "PCT"], on = .(ADP, EM_GEAR)][, ":=" (TRIPS_ADDED = 0, BOXCOX = "Yes")])
-dat <- dat[, lapply(.SD, function(x) median(x, na.rm = TRUE)), .SDcols = metrics, keyby = .(ADP, EM_GEAR, N, n, rate, TRIPS_ADDED, BOXCOX)]
-dat <- unique(dat[, .(ADP, EM_GEAR, N, n, rate, TRIPS_ADDED, N_AREAS, DAYS, LENGTH_OVERALL, N_SPECIES, PMAX, LANDED_CATCH, BOXCOX)])
-dat <- melt(dat, measure.vars = metrics, variable.name = "METRIC")
+## Figure 3: median difference (%) against observation for lagging metrics 
+dat <- uplabel_results_uf$N_table[uplabel_results_uf$obs[SCALE == "PCT"], on = .(ADP, EM_GEAR, POP, TRIPS_ADDED)][, POP := NULL][, ':=' (BOXCOX = uplabel_results_uf$args$boxcox, METHOD = uplabel_results_uf$args$method)]
+dat <- rbind(dat, uplabel_results_tf$N_table[uplabel_results_tf$obs[SCALE == "PCT"], on = .(ADP, EM_GEAR, POP, TRIPS_ADDED)][, POP := NULL][, ':=' (BOXCOX = uplabel_results_tf$args$boxcox, METHOD = uplabel_results_tf$args$method)])
+dat <- rbind(dat, uplabel_results_us$N_table[uplabel_results_us$obs[SCALE == "PCT"], on = .(ADP, EM_GEAR, POP, TRIPS_ADDED)][, POP := NULL][, ':=' (BOXCOX = uplabel_results_us$args$boxcox, METHOD = uplabel_results_us$args$method)])
+dat <- rbind(dat, uplabel_results_ts$N_table[uplabel_results_ts$obs[SCALE == "PCT"], on = .(ADP, EM_GEAR, POP, TRIPS_ADDED)][, POP := NULL][, ':=' (BOXCOX = uplabel_results_ts$args$boxcox, METHOD = uplabel_results_ts$args$method)])
+dat <- rbind(dat, perm_results_u$N_table[perm_results_u$obs[SCALE == "PCT"], on = .(ADP, EM_GEAR)][, ":=" (TRIPS_ADDED = 0, BOXCOX = FALSE, METHOD = "flip")])
+dat <- rbind(dat, perm_results_u$N_table[perm_results_u$obs[SCALE == "PCT"], on = .(ADP, EM_GEAR)][, ":=" (TRIPS_ADDED = 0, BOXCOX = FALSE, METHOD = "swap")])
+dat <- rbind(dat, perm_results_t$N_table[perm_results_t$obs[SCALE == "PCT"], on = .(ADP, EM_GEAR)][, ":=" (TRIPS_ADDED = 0, BOXCOX = TRUE, METHOD = "flip")])
+dat <- rbind(dat, perm_results_t$N_table[perm_results_t$obs[SCALE == "PCT"], on = .(ADP, EM_GEAR)][, ":=" (TRIPS_ADDED = 0, BOXCOX = TRUE, METHOD = "swap")])
+dat <- melt(dat, measure.vars = metrics, variable.name = "METRICS")
+dat <- dat[lagging_metrics, on = .(ADP, EM_GEAR, BOXCOX, METHOD, METRICS)]
 dat[, EM_GEAR := factor(EM_GEAR, levels = c("EM HAL", "HAL", "POT", "NPT", "PTR"))]
+dat[, BOXCOX := ifelse(BOXCOX, "Yes", "No")]
 dat[, BOXCOX := factor(BOXCOX, levels = c("Yes", "No"))]
-dat[, METRIC := recode(METRIC, "N_AREAS" = "NMFS\nareas", "DAYS" = "Days\nfished", "LENGTH_OVERALL" = "Vessel\nlength (ft)", "N_SPECIES" = "Species\nlanded", "PMAX" = "pMax\nspecies", "LANDED_CATCH" = "Landed\ncatch (t)")]
-dat <- dat[ADP == 2019]
+dat[, METHOD := recode(METHOD, "flip" = "Uplabel", "swap" = "Resample")]
+dat[, METHOD := factor(METHOD, levels = c("Uplabel", "Resample"))]
+dat[, METRICS := as.character(recode(METRICS, "N_AREAS" = "Areas", "DAYS" = "Days", "LENGTH_OVERALL" = "Length (ft)", "N_SPECIES" = "Species", "PMAX" = "pMax", "LANDED_CATCH" = "Landings (t)"))]
+
+# Replace NAs at 100% sampling with 0, since there is no difference between monitored and unmonitored trips (all trips are monitored)
+dat[N == n, value := 0]
+
+# Calculate median and confidence interval  
+dat <- dat[, .(lci = quantile(value, 0.25), median = median(value), uci = quantile(value, 0.75)), keyby = .(ADP, EM_GEAR, N, n, rate, TRIPS_ADDED, BOXCOX, METHOD, METRICS)]
 
 # Create Figure 3
-f3 <- ggplot(dat, aes(x = rate * 100, y = value, shape = BOXCOX, color = BOXCOX)) +
-      geom_line() +
-      geom_point(size = 2) + 
-      geom_hline(yintercept = 0.05, linetype = 2, color = "red") +
-      facet_grid(METRIC ~ EM_GEAR) +
-      labs(x = "Simulated monitoring rate (%)", y = "Observed difference (%)", shape = "Transformed", color = "Transformed") +
+f3 <- ggplot(dat) +
+      geom_line(aes(x = rate * 100, y = median, shape = METHOD, color = BOXCOX)) +
+      geom_point(aes(x = rate * 100, y = median, shape = METHOD, color = BOXCOX), size = 2) + 
+      geom_ribbon(aes(x = rate * 100, ymin = lci, ymax = uci, shape = METHOD, fill = BOXCOX), alpha = 0.2) +
+      geom_hline(yintercept = 0.05/length(metrics), linetype = 2, color = "red") +
+      facet_wrap(c("EM_GEAR", "ADP", "METRICS"), scales = "free") +
+      labs(x = "Simulated monitoring rate (%)", y = "Observed difference (%)", fill = "Transformed", shape = "Method") +
       theme_bw() +
+      scale_fill_manual(values = c("red", "black")) +
       scale_color_manual(values = c("red", "black")) +
       theme(text = element_text(size = 16),
-            legend.position = "bottom")
+            legend.position = "bottom") +
+      guides(color = "none")
 
 # Save Figure 3
 # png("Observer_Effects/figures/f3.png", width = 11, height = 8.5, units = 'in', res = 300)
